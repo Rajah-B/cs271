@@ -1,3 +1,3 @@
-Rajah Blauo
+# CS 271  Repository
 
-This repository is for class cs271.
+Rajah Blauo's repository for CS 271.
