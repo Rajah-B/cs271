@@ -14,5 +14,11 @@ CHIP DMux {
     OUT a, b;
 
     PARTS:
-    // Put your code here:
+    // Nots the selector 
+    Not (in=sel, out=notsel);
+    /* Checks to see if not selector and a are true.
+       If both are then a pin outs true*/
+    And (a=in, b=notsel, out=a);
+    // if both a and selector true the b pin outs true.
+    And (a=in, b=sel, out=b);
 }
