@@ -12,3 +12,56 @@
 // the screen should remain fully clear as long as no key is pressed.
 
 // Put your code here.
+
+(BEGIN)
+	// Check if a key has been pressed
+	@KBD
+	D=M
+	@KP
+	D;JNE
+	@KR
+	0;JMP
+
+(KP) //Key Pushed
+	@0
+	D=A-1	
+	@fill
+	M=D	
+
+(BSF) //Begin Screen Fill
+	@8192	
+	D=A
+	@rBits
+	M=D	
+	@SCREEN
+	D=A
+	@position
+	M=D	
+
+(SFL) //Screen Fill Loop
+	@rBits
+	D=M
+	@BEGIN
+	D;JLE	
+
+	@fill
+	D=M
+	@position
+	A=M
+	M=D
+
+	@rBits
+	M=M-1	
+	@position
+	M=M+1	
+
+	@SFL
+	0;JMP
+
+(KR) //Key Relased
+	@0
+	D=A
+	@fill
+	M=D	
+	@BSF
+	0;JMP	
