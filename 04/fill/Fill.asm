@@ -14,7 +14,7 @@
 // Put your code here.
 
 
-(BEGIN)// Check if a key has been pressed
+(BEGIN) // Check if a key has been pressed
 	@KBD
 	D=M
 	@7
