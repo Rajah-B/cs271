@@ -13,55 +13,48 @@
 
 // Put your code here.
 
-(BEGIN)
-	// Check if a key has been pressed
+
+(BEGIN)// Check if a key has been pressed
 	@KBD
 	D=M
-	@KP
+	@7
 	D;JNE
-	@KR
+	@37
 	0;JMP
-
 (KP) //Key Pushed
 	@0
-	D=A-1	
-	@fill
-	M=D	
-
-(BSF) //Begin Screen Fill
+	D = A - 1	
+	@10
+	M = D	
+(BSFL) //Begin Screen Fill Loop
 	@8192	
-	D=A
-	@rBits
-	M=D	
-	@SCREEN
-	D=A
-	@position
-	M=D	
-
+	D = A
+	@15
+	M = D	
+	@17
+	D = A
+	@19
+	M = D	
 (SFL) //Screen Fill Loop
-	@rBits
-	D=M
-	@BEGIN
+	@15
+	D = M
+	@0
 	D;JLE	
-
-	@fill
-	D=M
-	@position
-	A=M
-	M=D
-
-	@rBits
-	M=M-1	
-	@position
-	M=M+1	
-
-	@SFL
+	@10
+	D = M
+	@19
+	A = M
+	M = D
+	@15
+	M = M - 1	
+	@19
+	M = M + 1	
+	@21
 	0;JMP
-
 (KR) //Key Relased
 	@0
-	D=A
-	@fill
-	M=D	
-	@BSF
-	0;JMP	
+	D = A
+	@10
+	M = D
+	@12
+	0;JMP
