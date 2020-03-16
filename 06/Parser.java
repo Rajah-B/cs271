@@ -1,197 +1,111 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Scanner;
-import java.util.regex.Matcher;
+import java.io.*;
+import java.util.*;
 import java.util.regex.Pattern;
 
-public class Parser 
-{
+public class Parser {
 
-    private int index = 0;
-    private ArrayList<String> commands;
-    private String crntCmd;
+    public String[] arrCommand;
 
-    public Parser(String asmF) 
-	{
-		commands = new ArrayList<String>();
-		reset();
-		iP(asmF);
+    public int arrsize;
+
+    public int curIndex = 0;
+    public String curCommand;
+
+    public SymbolTable symT;
+
+
+    public static enum CommandType {
+        A_COMMAND, C_COMMAND, L_COMMAND
     }
 
-    // Reset the parser.  Used prior to the second pass.    
-    public void reset() 
-	{
-		index = -1;
+    public Parser(String path, SymbolTable sTable) throws IOException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(path), "UTF-8"));
+        String line;
+        symT = sTable;
+        List<String> list = new ArrayList<String>();
+        while (null != (line = in.readLine())) {
+            line = line.replaceAll(" ", "");
+            if (line.equals("") || line.startsWith("//")) {
+                continue;
+            }
+            if (line.indexOf("//") > 0) {
+                line = line.substring(0, line.indexOf("//"));
+            }
+            if (line.startsWith("(") && line.endsWith(")")) {
+                symT.addEntry(line.substring(1, line.length() - 1), curIndex);
+                continue;
+            }
+
+            curIndex++; 
+            list.add(line);
+        }
+        arrsize = list.size();
+        arrCommand = (String[]) list.toArray(new String[arrsize]);
+        in.close();
+
+        curIndex = 0;
     }
 
-    private void iP(String src) 
-	{
-		Scanner scanner;
-		String line;
-		int index;
-		try 
-		{
-			scanner = new Scanner(new File(src));
-			while (scanner.hasNextLine())
-			{
-				line = scanner.nextLine();
-				line = line.replaceAll("\\s", "");
-				index = line.indexOf("//");
-				if (index != -1)
-				{
-					line = line.substring(0, index);
-				}
-				if (line.length() > 0) 
-				{
-					commands.add(line);
-					System.out.println("Input: " + line);
-				}
-			}
-		} 
-		catch (FileNotFoundException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
-    
-    public String getCommand()
-    {
-    	return crntCmd;
+    public boolean hasMoreCommands() {
+        return arrsize - curIndex > 0;
     }
-    
-    public void advance()
-    {
-    	if (moreCommands())
-    	{
-    		index++;
-    		crntCmd = commands.get(index);
-    	}
-    	else
-		{
-			System.out.println("~END~");
-		}
-    }
-    
-    public boolean moreCommands()
-    {
-    	if (index < commands.size()-1) return true;
-    	else return false;
-    } 
 	
-	public enum CommandType 
-	{
-		A_COMMAND, C_COMMAND, L_COMMAND
-	}
-    
-    public CommandType commandType()
-    {
-    	if (crntCmd.startsWith("@"))
-		{
-    		return CommandType.A_COMMAND;
-    	}
-		else if(crntCmd.startsWith("(") && curInstruct.endsWith(")"))
-		{
-    		return CommandType.L_COMMAND;
-    	}
-		else
-		{
-			return CommandType.C_COMMAND;
-		}
+    public void advance() {
+        curCommand = arrCommand[curIndex++];
     }
-    
-    public String symbol()
-    {
-    	int endIndex = crntCmd.length()-1;
-    	if(commandType() == CommandType.A_COMMAND)
-    	{
-    		return crntCmd.substring(1);
-    	}
-    	else if (commandType() == CommandType.L_COMMAND)
-    	{
-    		return crntCmd.substring(1, endIndex);
-    	}
-    	else
-    	{
-    		System.out.println("Command type =! A or L");
-    		return "";
-    	}
+
+    public CommandType commandType() {
+        if (curCommand.startsWith("@")) {
+            return CommandType.A_COMMAND;
+        }
+
+        if (curCommand.indexOf("=") > 0 || curCommand.indexOf(";") > 0) {
+            return CommandType.C_COMMAND;
+        }
+
+        if (curCommand.startsWith("(") && curCommand.endsWith(")")) {
+            return CommandType.L_COMMAND;
+        }
+        throw new RuntimeException("unknow command '" + curCommand + "'");
     }
-    
-    public String dst()
-    {
-    	if (commandType() == CommandType.C_COMMAND)
-    	{
-    		if (crntCmd.contains("="))
-    		{
-    			int i = crntCmd.indexOf("=");
-				return crntCmd.substring(0, i);
-    		}
-    		else
-        	{
-        		System.out.println("Command isn't dst");
-        		return "";
-        	}
-    	}
-    	else 
-    	{
-    		System.out.println("Command Type isn't C");
-    		return "";
-    	}
+
+
+    public String symbol() {
+        if (curCommand.startsWith("@")) {
+            return curCommand.substring(1);
+        }
+
+\        return curCommand.substring(1, curCommand.length() - 1);
     }
-    
-    public String comp()
-    {
-    	if (commandType() == CommandType.C_COMMAND)
-    	{
-    		if (crntCmd.contains("=") && crntCmd.contains(";"))
-    		{
-    			int colon = crntCmd.indexOf(";");
-    			int sum = crntCmd.indexOf("=");
-    			return crntCmd.substring(sum, colon);
-    		}
-    		else if (crntCmd.contains("="))
-        	{
-				int i = crntCmd.indexOf("=");
-				return crntCmd.substring(i + 1);
-        	}
-    		else if (crntCmd.contains(";"))
-    		{
-				int colon = crntCmd.indexOf(";");
-    			return crntCmd.substring(0, colon);
-    		}
-    		else
-    		{
-    			return crntCmd;
-    		}
-    	}
-    	else 
-    	{
-    		System.out.println("Instruction isn't C");
-    		return "";
-    	}
+
+    public String dest() {
+        int index = curCommand.indexOf("=");
+        if (index > 0) {
+            return curCommand.substring(0, index);
+        }
+        return "null";
     }
-    
-    public String jump()
-    {
-    	if (commandType() == CommandType.C_COMMAND)
-    	{
-    		if (crntCmd.contains(";"))
-    		{
-    			int i = crntCmd.indexOf(";");
-    			return crntCmd.substring(i + 1);
-    		}
-    		else
-        	{
-        		System.out.println("Command doesn't contain a JMP");
-        		return "";
-        	}
-    	}
-    	else
-    	{
-    		System.out.println("Command is not C");
-    		return "";
-    	}
+
+    public String cmp() {
+        int indexEqu = curCommand.indexOf("=");
+        int indexSem = curCommand.indexOf(";");
+        int start = indexEqu > 0 ? indexEqu + 1 : 0;
+        int end = indexSem > 0 ? indexSem : curCommand.length();
+
+        return curCommand.substring(start, end);
     }
+
+    public String jmp() {
+        int index = curCommand.indexOf(";");
+        if (index > 0) {
+            return curCommand.substring(index + 1, curCommand.length());
+        }
+        return "null";
+    }
+
+    public static boolean isNumeric(String str) {
+        Pattern pa = Pattern.compile("[0-9]*");
+        return pa.matcher(str).matches();
+    }
+
 }
