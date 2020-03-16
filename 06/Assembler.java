@@ -11,9 +11,9 @@ public class Assembler {
 
         SymbolTable symT = new SymbolTable();
         Parser p = new Parser(iP,symT);
-        while (p.hasMoreCommands()) {
+        while (p.moreCom()) {
             p.advance();
-            switch (p.commandType()) {
+            switch (p.comT()) {
             case A_COMMAND:
                 System.out.println("A: " + p.curnCom);                
                 System.out.println(symbin2(p.sym(),symT));
